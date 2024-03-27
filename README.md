@@ -16,9 +16,10 @@ This is a collection of utils to kick start your android apps.
 ## Install Package
 
 ```kotlin
-implementation("com.tomorrow.projectStartup:InternetConnectivity:$version")
-implementation("com.tomorrow.projectStartup:Navigation:$version")
-implementation("com.tomorrow.projectStartup:AppUpdate:$version")
-implementation("com.tomorrow.projectStartup:ReadViewModel:$version")
-implementation("com.tomorrow.projectStartup:RequestPermission:$version")
+implementation("com.github.tomorrw:Android-Project-Startup:InternetConnectivity:$version")
+implementation("com.github.tomorrw:Android-Project-Startup:Navigation:$version")
+implementation("com.github.tomorrw:Android-Project-Startup:AppUpdate:$version")
+implementation("com.github.tomorrw:Android-Project-Startup:ReadViewModel:$version")
+implementation("com.github.tomorrw:Android-Project-Startup:RequestPermission:$version")
 ```
+`❗️ Don't Forget adding maven("https://jitpack.io")`
