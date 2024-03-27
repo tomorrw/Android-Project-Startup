@@ -1,7 +1,7 @@
 
-# IOS Ui Components
+# Android Project Startup
 
-This is a collection of UI components for IOS.
+This is a collection of utils to kick start your android apps.
 
 | Package Name | Description                |
 | :--------    | :------------------------- |
