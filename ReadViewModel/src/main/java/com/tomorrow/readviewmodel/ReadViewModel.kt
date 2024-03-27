@@ -14,9 +14,11 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import com.tomorrow.readviewmodel.components.GeneralError
 import com.tomorrow.readviewmodel.components.Loader
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.launch
 
 open class ReadViewModel<D>(
     internal val load: () -> Flow<D>,
@@ -24,7 +26,7 @@ open class ReadViewModel<D>(
     internal val emptyCheck: (D) -> Boolean = { false },
 ) : ViewModel() {
     var state by mutableStateOf(State<D>())
-
+    private val scope = CoroutineScope(Dispatchers.Main)
     //used to load data from suspend functions
     constructor(
         suspendLoad: suspend () -> D,
@@ -44,7 +46,7 @@ open class ReadViewModel<D>(
         Log.v("Read View Model Event", "$event")
         when (event) {
             Event.Load -> {
-                runBlocking {
+                scope.launch {
                     state = state.copy(isLoading = true, error = null)
                     try {
                         load().collect {
@@ -52,7 +54,7 @@ open class ReadViewModel<D>(
                             state = state.copy(
                                 isLoading = false,
                                 isEmpty = emptyCheck(it),
-                                )
+                            )
                         }
                     } catch (e: Throwable) {
                         Log.e("Read View Model Error", "$e")
@@ -62,7 +64,7 @@ open class ReadViewModel<D>(
             }
 
             Event.OnRefresh -> {
-                runBlocking {
+                scope.launch {
                     state = state.copy(isRefreshing = true, error = null)
                     try {
                         refresh().collect {
@@ -84,7 +86,7 @@ open class ReadViewModel<D>(
             }
 
             Event.LoadSilently -> {
-                runBlocking {
+                scope.launch {
                     state = state.copy(error = null)
                     try {
                         load().collect {
