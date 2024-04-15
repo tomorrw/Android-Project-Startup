@@ -88,18 +88,16 @@ fun InAppUpdater(
 
     val isDialogVisible = rememberSaveable { mutableStateOf(false) }
     val isUpdateForced = rememberSaveable { mutableStateOf(false) }
-    val isForceUpdateDialogVisible = rememberSaveable { mutableStateOf(false) }
-    val isFlexibleUpdateDialogVisible = rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(key1 = updateType) {
         fun toggleDialog(updateType: UpdateType) {
-            isFlexibleUpdateDialogVisible.value = updateType == UpdateType.Flexible
-            isForceUpdateDialogVisible.value = updateType == UpdateType.Forced
             isDialogVisible.value = updateType != UpdateType.None
             isUpdateForced.value = updateType === UpdateType.Forced
         }
 
         fun checkUpdateType() {
+            if (updateType == UpdateType.None) return
+
             appUpdateManager.appUpdateInfo.addOnSuccessListener {
                 if (it.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE) {
                     appUpdateManager.startUpdate(intentLauncher, it, updateType.toAppUpdateType())
