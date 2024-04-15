@@ -95,34 +95,37 @@ fun InAppUpdater(
             isUpdateForced.value = updateType === UpdateType.Forced
         }
 
-        fun checkUpdateType() {
-            if (updateType == UpdateType.None) return
+        if (updateType == UpdateType.None) return@LaunchedEffect
 
-            appUpdateManager.appUpdateInfo.addOnSuccessListener {
-                if (it.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE) {
-                    appUpdateManager.startUpdate(intentLauncher, it, updateType.toAppUpdateType())
-                } else {
-                    toggleDialog(updateType)
-                }
-            }.addOnFailureListener { toggleDialog(updateType) }
-        }
+        appUpdateManager.appUpdateInfo.addOnSuccessListener {
+            if (it.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE) {
+                appUpdateManager.startUpdate(intentLauncher, it, updateType.toAppUpdateType())
+            } else {
+                toggleDialog(updateType)
+            }
+        }.addOnFailureListener { toggleDialog(updateType) }
 
-        checkUpdateType()
     }
 
     if (isDialogVisible.value) {
         AlertDialog(
-            onDismissRequest = { if (!isUpdateForced.value) { isDialogVisible.value = false } },
+            onDismissRequest = {
+                if (!isUpdateForced.value) {
+                    isDialogVisible.value = false
+                }
+            },
             containerColor = backgroundColor,
             title = {
                 Text(
                     text = title,
-                    style = titleTextStyle)
+                    style = titleTextStyle
+                )
             },
             text = {
                 Text(
                     text = description,
-                    style = descriptionTextStyle)
+                    style = descriptionTextStyle
+                )
                 Spacer(Modifier.height(24.dp))
             },
             confirmButton = {
