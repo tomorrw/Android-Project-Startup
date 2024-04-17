@@ -8,12 +8,25 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogProperties
 import androidx.core.net.toUri
 import com.google.android.play.core.appupdate.AppUpdateInfo
 import com.google.android.play.core.appupdate.AppUpdateManager
@@ -29,7 +42,7 @@ data class StoreInfo(
 )
 
 enum class UpdateType {
-    Forced, Flexible, None,
+    Forced, Flexible, None
 }
 
 private fun AppUpdateManager.startUpdate(
@@ -51,79 +64,108 @@ private fun ActivityResultLauncher<IntentSenderRequest>.starter(): IntentSenderF
         )
     }
 
+data class AppUpdaterStyle(
+    val backgroundColor: Color,
+    val titleTextStyle: TextStyle,
+    val descriptionTextStyle: TextStyle,
+    val ctaButtonTextStyle: TextStyle,
+    val dismissButtonTextStyle: TextStyle,
+    val cornerRadius: Dp = 8.dp
+)
+
 @Composable
 fun InAppUpdater(
-    appUpdateManager: AppUpdateManager = AppUpdateManagerFactory.create(LocalContext.current),
     storeInfo: StoreInfo? = null,
     updateType: UpdateType,
-    customAlertDialog: @Composable (
-        title: String,
-        description: String,
-        ctaButtonText: String,
-        onCTAClick: () -> Unit,
-        isDismissible: Boolean,
-        isDismissibleOnBack: Boolean,
-        onDismiss: () -> Unit,
-        dismissButtonText: String,
-    ) -> Unit,
+    title: String = "${storeInfo?.name ?: "App"} needs an update!",
+    description: String = "A new update is available, please download the latest version!",
+    ctaButtonText: String = "Update",
+    dismissButtonText: String = "No Thanks",
+    style: AppUpdaterStyle = AppUpdaterStyle(
+        backgroundColor = MaterialTheme.colorScheme.surface,
+        titleTextStyle = LocalTextStyle.current.copy(color = MaterialTheme.colorScheme.onSurface),
+        descriptionTextStyle = LocalTextStyle.current.copy(color = MaterialTheme.colorScheme.onSurface),
+        ctaButtonTextStyle = LocalTextStyle.current.copy(color = MaterialTheme.colorScheme.error),
+        dismissButtonTextStyle = LocalTextStyle.current.copy(color = MaterialTheme.colorScheme.onSurface),
+    )
 ) {
+    val appUpdateManager: AppUpdateManager = AppUpdateManagerFactory.create(LocalContext.current)
     val intentLauncher =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.StartIntentSenderForResult(),
             onResult = { if (it.resultCode == Activity.RESULT_CANCELED) exitProcess(0) })
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
-    val isForceUpdateDialogVisible = rememberSaveable { mutableStateOf(false) }
-    val isFlexibleUpdateDialogVisible = rememberSaveable { mutableStateOf(false) }
-
-
+    val isDialogVisible = rememberSaveable { mutableStateOf(false) }
+    val isUpdateForced = rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(key1 = updateType) {
         fun toggleDialog(updateType: UpdateType) {
-            isFlexibleUpdateDialogVisible.value =
-                updateType == UpdateType.Flexible
-            isForceUpdateDialogVisible.value = updateType == UpdateType.Forced
+            isDialogVisible.value = updateType != UpdateType.None
+            isUpdateForced.value = updateType === UpdateType.Forced
         }
 
-        fun checkUpdateType() {
-            if (updateType == UpdateType.None) return
+        if (updateType == UpdateType.None) return@LaunchedEffect
 
-            appUpdateManager.appUpdateInfo.addOnSuccessListener {
-                if (it.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE) {
-                    appUpdateManager.startUpdate(intentLauncher, it, updateType.toAppUpdateType())
-                } else {
-                    toggleDialog(updateType)
-                }
-            }.addOnFailureListener { toggleDialog(updateType) }
-        }
+        appUpdateManager.appUpdateInfo.addOnSuccessListener {
+            if (it.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE) {
+                appUpdateManager.startUpdate(intentLauncher, it, updateType.toAppUpdateType())
+            } else {
+                toggleDialog(updateType)
+            }
+        }.addOnFailureListener { toggleDialog(updateType) }
 
-        checkUpdateType()
     }
 
-    when {
-        isForceUpdateDialogVisible.value ->
-            customAlertDialog(
-                title = "${storeInfo?.name ?: "App"} needs an update!",
-                description = "A new update is available, please download the latest version!",
-                ctaButtonText = "Update",
-                onCTAClick = { context.openUpdatePageInPlayStore(storeInfo?.updateUrl?.toUri()) },
-                isDismissible = false,
-                isDismissibleOnBack = false,
-                onDismiss = { exitProcess(0) },
-                dismissButtonText = "Close App",
+    if (isDialogVisible.value) {
+        AlertDialog(
+            onDismissRequest = {
+                if (!isUpdateForced.value) {
+                    isDialogVisible.value = false
+                }
+            },
+            containerColor = style.backgroundColor,
+            title = {
+                Text(
+                    text = title,
+                    style = style.titleTextStyle
+                )
+            },
+            text = {
+                Text(
+                    text = description,
+                    style = style.descriptionTextStyle
+                )
+                Spacer(Modifier.height(24.dp))
+            },
+            confirmButton = {
+                Text(
+                    text = ctaButtonText,
+                    modifier = Modifier
+                        .clip(ButtonDefaults.textShape)
+                        .clickable(onClick = { context.openUpdatePageInPlayStore(storeInfo?.updateUrl?.toUri()) })
+                        .padding(8.dp),
+                    style = style.ctaButtonTextStyle
+                )
+            },
+            dismissButton = {
+                if (!isUpdateForced.value) {
+                    Text(
+                        text = dismissButtonText,
+                        modifier = Modifier
+                            .clip(ButtonDefaults.textShape)
+                            .clickable(onClick = { isDialogVisible.value = false })
+                            .padding(8.dp),
+                        style = style.dismissButtonTextStyle
+                    )
+                }
+            },
+            shape = RoundedCornerShape(style.cornerRadius),
+            properties = DialogProperties(
+                dismissOnBackPress = !isUpdateForced.value,
+                dismissOnClickOutside = !isUpdateForced.value
             )
-
-        isFlexibleUpdateDialogVisible.value ->
-            customAlertDialog(
-                title = "${storeInfo?.name ?: "App"} needs an update!",
-                description = "A new update is available, please download the latest version!",
-                ctaButtonText = "Update",
-                onCTAClick = { context.openUpdatePageInPlayStore(storeInfo?.updateUrl?.toUri()) },
-                isDismissible = true,
-                onDismiss = { isFlexibleUpdateDialogVisible.value = false },
-                dismissButtonText = "No Thanks",
-                isDismissibleOnBack = true
-            )
+        )
     }
 }
 

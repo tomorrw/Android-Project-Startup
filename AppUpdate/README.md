@@ -4,23 +4,33 @@ Displays a popup to the user when updateType is enabled with the option to updat
 ## Usage
 ```kotlin
 InAppUpdater (
-appUpdateManager: AppUpdateManager = AppUpdateManagerFactory.create(LocalContext.current),
-storeInfo = appInfo,
-updateType = updateType,
-customAlertDialog = { title, description, ctaButtonText, onCTAClick, isDismissible, isDismissibleOnBack, onDismiss, dismissButtonText ->
-            // custom Alert Dialog Goes Here
-    }
+    storeInfo: StoreInfo? = null,
+    updateType: UpdateType,
+    title: String = "${storeInfo?.name ?: "App"} needs an update!",
+    description: String = "A new update is available, please download the latest version!",
+    ctaButtonText: String = "Update",
+    dismissButtonText: String = "No Thanks",
+    style: AppUpdaterStyle = // Default Style
 )
 ```
 
 ### Parameters
 ```kotlin
 StoreInfo(
-    val name: String,
-    val updateUrl: String?,
+    name: String,
+    updateUrl: String?,
 )
 
 enum class UpdateType {
     Forced, Flexible, None,
 }
+
+AppUpdaterStyle(
+    backgroundColor: Color,
+    titleTextStyle: TextStyle,
+    descriptionTextStyle: TextStyle,
+    ctaButtonTextStyle: TextStyle,
+    dismissButtonTextStyle: TextStyle,
+    cornerRadius: Dp = 8.dp
+)
 ```
