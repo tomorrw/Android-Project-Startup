@@ -64,6 +64,15 @@ private fun ActivityResultLauncher<IntentSenderRequest>.starter(): IntentSenderF
         )
     }
 
+data class AppUpdaterStyle(
+    val backgroundColor: Color,
+    val titleTextStyle: TextStyle,
+    val descriptionTextStyle: TextStyle,
+    val ctaButtonTextStyle: TextStyle,
+    val dismissButtonTextStyle: TextStyle,
+    val cornerRadius: Dp = 8.dp
+)
+
 @Composable
 fun InAppUpdater(
     storeInfo: StoreInfo? = null,
@@ -72,12 +81,13 @@ fun InAppUpdater(
     description: String = "A new update is available, please download the latest version!",
     ctaButtonText: String = "Update",
     dismissButtonText: String = "No Thanks",
-    backgroundColor: Color = MaterialTheme.colorScheme.surface,
-    titleTextStyle: TextStyle = LocalTextStyle.current.copy(color = MaterialTheme.colorScheme.onSurface),
-    descriptionTextStyle: TextStyle = LocalTextStyle.current.copy(color = MaterialTheme.colorScheme.onSurface),
-    ctaButtonTextStyle: TextStyle = LocalTextStyle.current.copy(color = MaterialTheme.colorScheme.error),
-    dismissButtonTextStyle: TextStyle = LocalTextStyle.current.copy(color = MaterialTheme.colorScheme.onSurface),
-    cornerRadius: Dp = 8.dp
+    style: AppUpdaterStyle = AppUpdaterStyle(
+        backgroundColor = MaterialTheme.colorScheme.surface,
+        titleTextStyle = LocalTextStyle.current.copy(color = MaterialTheme.colorScheme.onSurface),
+        descriptionTextStyle = LocalTextStyle.current.copy(color = MaterialTheme.colorScheme.onSurface),
+        ctaButtonTextStyle = LocalTextStyle.current.copy(color = MaterialTheme.colorScheme.error),
+        dismissButtonTextStyle = LocalTextStyle.current.copy(color = MaterialTheme.colorScheme.onSurface),
+    )
 ) {
     val appUpdateManager: AppUpdateManager = AppUpdateManagerFactory.create(LocalContext.current)
     val intentLauncher =
@@ -114,17 +124,17 @@ fun InAppUpdater(
                     isDialogVisible.value = false
                 }
             },
-            containerColor = backgroundColor,
+            containerColor = style.backgroundColor,
             title = {
                 Text(
                     text = title,
-                    style = titleTextStyle
+                    style = style.titleTextStyle
                 )
             },
             text = {
                 Text(
                     text = description,
-                    style = descriptionTextStyle
+                    style = style.descriptionTextStyle
                 )
                 Spacer(Modifier.height(24.dp))
             },
@@ -135,7 +145,7 @@ fun InAppUpdater(
                         .clip(ButtonDefaults.textShape)
                         .clickable(onClick = { context.openUpdatePageInPlayStore(storeInfo?.updateUrl?.toUri()) })
                         .padding(8.dp),
-                    style = ctaButtonTextStyle
+                    style = style.ctaButtonTextStyle
                 )
             },
             dismissButton = {
@@ -146,11 +156,11 @@ fun InAppUpdater(
                             .clip(ButtonDefaults.textShape)
                             .clickable(onClick = { isDialogVisible.value = false })
                             .padding(8.dp),
-                        style = dismissButtonTextStyle
+                        style = style.dismissButtonTextStyle
                     )
                 }
             },
-            shape = RoundedCornerShape(cornerRadius),
+            shape = RoundedCornerShape(style.cornerRadius),
             properties = DialogProperties(
                 dismissOnBackPress = !isUpdateForced.value,
                 dismissOnClickOutside = !isUpdateForced.value

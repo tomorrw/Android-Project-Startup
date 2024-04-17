@@ -8,6 +8,7 @@ Inherit this view model and use it's states and methods.
 class myViewModel: ReadViewModel<CustomData> {
     load: () -> Flow<CustomData>,
     refresh: () -> Flow<CustomData> = load,
+    onDismiss: suspend () -> Unit = {},
     emptyCheck: (CustomData) -> Boolean = {false},
 }
 
