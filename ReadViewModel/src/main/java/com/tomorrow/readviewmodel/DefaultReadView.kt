@@ -10,6 +10,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.tomorrow.readviewmodel.components.GeneralError
 import com.tomorrow.readviewmodel.components.Loader
+import com.tomorrow.readviewmodel.utils.Loaded
 
 
 /**
