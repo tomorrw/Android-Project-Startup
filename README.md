@@ -22,4 +22,14 @@ implementation("com.github.tomorrw.Android-Project-Startup:AppUpdate:$version")
 implementation("com.github.tomorrw.Android-Project-Startup:ReadViewModel:$version")
 implementation("com.github.tomorrw.Android-Project-Startup:RequestPermission:$version")
 ```
-`❗️ Don't Forget adding maven("https://jitpack.io")`
+`❗️ Don't Forget to add`
+```kotlin
+maven {
+    name = it
+    url = uri("https://maven.pkg.github.com/tomorrw/Android-Project-Startup")
+    credentials {
+        username = envValues['USERNAME']
+        password = envValues['TOKEN']
+    }
+}
+```

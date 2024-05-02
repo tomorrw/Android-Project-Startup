@@ -3,8 +3,8 @@ apply plugin: 'signing' // Required for signing the artifacts
 
 ext {
     PUBLISH_GROUP_ID = 'com.tomorrow.projectStartup'
-    PUBLISH_VERSION = '1.0.10'
-    PUBLISH_ARTIFACT_ID = project.name.replaceAll(" ", "-")
+    PUBLISH_VERSION = '1.0.11'
+    PUBLISH_ARTIFACT_ID = project.name.replaceAll(" ", "-").toLowerCase()
 }
 // Android Source Jar task to include both Java and Kotlin source code
 tasks.register('androidSourcesJar', Jar) {
@@ -47,8 +47,8 @@ afterEvaluate {
                 pom {
                     name = PUBLISH_ARTIFACT_ID
                     description = 'UI Components for Android'
-                    url = 'local'
-                    packaging = 'aar'
+                    url.set("https://github.com/tomorrw/Android-Project-Startup")
+
                     developers {
                         developer {
                             id = 'MarcJalkh'
@@ -56,8 +56,37 @@ afterEvaluate {
                             email = 'marc@tomorrow.services'
                         }
                     }
+                    scm {
+                        connection = "scm:git:git://github.com/tomorrw/Android-Project-Startup.git"
+                        url = "https://github.com/tomorrw/Android-Project-Startup"
+                    }
                 }
             }
         }
+
+
+        repositories {
+            def envValues = readEnvValues("${project.rootProject.projectDir}/.env")
+            if (envValues['USERNAME'] != null && envValues['TOKEN'] != null) {
+                maven {
+                    name = 'GitHubPackages'
+                    url = uri("https://maven.pkg.github.com/tomorrw/Android-Project-Startup")
+                    credentials {
+                        username = envValues['USERNAME']
+                        password = envValues['TOKEN']
+                    }
+                }
+            }
+
+        }
     }
+}
+
+def readEnvValues(path) {
+    def env = [:] // Create a map to store key-value pairs
+    file(path).eachLine { line -> // Adjust the path to your env file
+        def (key, value) = line.split('=').collect { it.trim() }
+        env[key] = value
+    }
+    return env
 }

@@ -55,7 +55,7 @@ captures
 .externalNativeBuild
 .cxx
 local.properties
-
+.env
 .build/
 
 androidApp/release/*
