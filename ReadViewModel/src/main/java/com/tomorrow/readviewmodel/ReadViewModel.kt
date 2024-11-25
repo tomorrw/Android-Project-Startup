@@ -41,7 +41,7 @@ open class ReadViewModel<D>(
     }
 
     fun on(event: Event) {
-        Log.v("Read View Model Event", "$event")
+        Log.v("Read View Model Event: ${this.javaClass.name}", "$event")
         when (event) {
             Event.Load -> {
                 scope.launch(Dispatchers.Main) {
